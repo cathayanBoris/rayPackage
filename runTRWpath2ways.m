@@ -25,7 +25,7 @@ function runTRWpath2ways(lonInput,latInput,initialPeriodInDays,initialWavelength
 % subsequently set ifcalcbathy=0, and the GLOBAL VARIABLES will be used
 
 % clear
-close all
+% close all
 % xq= X0deg*1000;    yq=Y0deg*1000;        %convert km to m
 InitialPeriodInS =initialPeriodInDays*86400;  initialWavelengthInM =initialWavelengthInKM *1000;  %convert day to sec, km to m
 smoothingParameterInM = smoothingParameterInKM * 1000;
@@ -44,6 +44,7 @@ timestepInHr= forwardBackward*timestepInHr;   %prelim runs say < 3 hrs and >0.5 
 %and 0.05 hr (3 minutes) runs SLOW, makes little improvement
 %number of steps one-way transit
 nsteps=floor(abs(numberOfDaysToRun*24/timestepInHr))+1; % the first entry is reserved for t=0
+% example: 1 day or 24 hr has nsteps = 2
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % % ifcalcbathy=0; %is an input now %set =1 first time as global variable; thereafter set =0
@@ -68,7 +69,7 @@ nsteps=floor(abs(numberOfDaysToRun*24/timestepInHr))+1; % the first entry is res
 %     Bgrid= [hg, hxg, hyg, hxxg, hxyg, hyyg];
 % end %ifcalcbathy  %otherwise use the already-calculated global bathy vars
 if needBathy == 1
-    [xtopo,ytopo,ztopoS] = getMeSmoothed(smoothingParameterInM,-92,-88,latInput-2,latInput+2);
+    [xtopo,ytopo,ztopoS] = getMeSmoothed(smoothingParameterInM,-91.5,-87.5,25.8,27.8);
     %
     % [ztopo] = getMePlateTopo(2800,0.005,xtopo,ytopo,ztopo);
 
@@ -90,10 +91,14 @@ xq = (lonInput - originLon) * meandx * 60;
 yq = (latInput - originLat) * meandy * 60;
 
 % Live Map
-figure(100) 
+figure(100)
+clf
 CI = 100;
 v=0:CI:4000;
 contour(xg,yg,hg',v,"ShowText","off"),
+xline(([-92:0.5:-87] - originLon) * meandx * 60,'-.')
+yline(([25.5:0.5:28] - originLat) * meandy * 60,'-.')
+axis([min(xg) max(xg) min(yg) max(yg)])
 clim([0 4000])
 %axis square
 hold on
@@ -169,7 +174,7 @@ xg = xg(:,1);
 yg = yg(:,1);
 
 % PVAR=TRWpath_sig1_2way(T0 ,LAM0 ,xq,yq, Ei, dt_hr,nsteps,Bath); %TRWpath does the hard work
-PVAR =TRWpath_sig1_2ways(InitialPeriodInS , initialWavelengthInM , xq,yq, Ei, timestepInHr,nsteps, Bgxy, Bgrid, smoothingParameterInM);
+PVAR = TRWpath_sig1_2ways(InitialPeriodInS , initialWavelengthInM , xq,yq, Ei, timestepInHr,nsteps, Bgxy, Bgrid, smoothingParameterInM);
 if PVAR == 999
     'The execution was a failure.'
     return

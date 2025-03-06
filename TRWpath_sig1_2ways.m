@@ -34,7 +34,7 @@ X0= xq;  Y0= yq;  %starting position (m) was specified in "running_path"
 % initial Ei values are input from running_path.m
 h = Ei(1); hx = Ei(2); hy = Ei(3);
 hxx = Ei(4); hxy = Ei(5); hyy = Ei(6);
-NB = Ei(7); f=  Ei(8); beta= Ei(9);
+NB = Ei(7); f = Ei(8); beta = Ei(9);
 
 iUPDN=-1;  % normal case (-1) is DNSLOPE phase propagation and cg upslope
 
@@ -66,7 +66,7 @@ hyyg=Bgrid(:,5*lx+1:6*lx)';
 % use 10X finer-comb fit for 1st point on path,
 % append "p" in klcirclefitp() for this slow one-time fit
 
-[k0,l0, sigFitted]=klcirclefitp(sig0,K0,Ei,iUPDN); %function name has appended "p" for path
+[k0,l0,sigFitted]=klcirclefitp(sig0,K0,Ei,iUPDN); %function name has appended "p" for path
 
 % redefine sig0 so it fits (k,l) even for long waves, small K0
 % DON'T DO THE FOLLOWING ANY MORE
@@ -104,19 +104,19 @@ end %if
 %return
 
 % npoints= 2*nsteps-1;    % initialize space also for reverse path
-npoints = nsteps;
+npoints = nsteps; % now it forbids the fw-bw tracing, only one directional 
 % initialize variables - space for vars that we may want to plot along path
-%   VECTOR LIST          % SCALAR 1st-values LIST
-xPath = zeros(npoints,1);     xPath(1,1)=X0;   % append 'p' for values along path
-yPath = zeros(npoints,1);     yPath(1,1)=Y0;
-kPath = zeros(npoints,1);     kPath(1,1)=k0;
-lPath = zeros(npoints,1);     lPath(1,1)=l0;
-K0Path= zeros(npoints,1);     K0Path(1,1)= K0;   %1st value might differ ??
-periodPathinDays = zeros(npoints,1);  periodPathinDays(1,1)=T0day;
+%   VECTOR LIST                     % SCALAR 1st-values LIST
+xPath = zeros(npoints,1);               xPath(1,1)=X0;   % append 'p' for values along path
+yPath = zeros(npoints,1);               yPath(1,1)=Y0;
+kPath = zeros(npoints,1);               kPath(1,1)=k0;
+lPath = zeros(npoints,1);               lPath(1,1)=l0;
+K0Path= zeros(npoints,1);               K0Path(1,1)= K0;   %1st value might differ ??
+periodPathinDays = zeros(npoints,1);    periodPathinDays(1,1)=T0day;
 cgxPath = zeros(npoints,1);      % get 1st cgx, cgy vals in 1st pass of for-loop
 cgyPath = zeros(npoints,1);
-EiPath = zeros(npoints,9);     EiPath(1,:) = Ei(:,:);
-hPath = zeros(npoints,1);      hPath(1,:) = Ei(:,1);
+EiPath = zeros(npoints,9);              EiPath(1,:) = Ei(:,:);
+% hPath = zeros(npoints,1);      hPath(1,:) = Ei(:,1);
 % hxPath = zeros(npoints,1);      hxPath(1,:) = Ei(:,2);
 % hyPath = zeros(npoints,1);      hyPath(1,:) = Ei(:,3);
 % NBPath = zeros(npoints,1);      NBPath(1,:) = Ei(:,7);
@@ -137,7 +137,7 @@ hPath = zeros(npoints,1);      hPath(1,:) = Ei(:,1);
 % %
 
 figure(100)
-text(0,-1e5, ['dt is ', num2str(dt_hr,3)] )
+text(0, -1e5, ['dt is ', num2str(dt_hr,3)] )
 text(0, -1.5e5, ['T0day=', num2str(T0day,3), '  λ0km=', num2str(initialWavelengthInM/1000,5)])
 hold on
 
@@ -255,6 +255,9 @@ for ns=2:npoints    % note loop starts calc for 2nd point from 1st point
     %
     [cgxPath(ns,1),cgyPath(ns,1),~,~]=TRWparms_point(k,l,sig,EiPath(ns,:)); %now must save cgxp,cgyp
     %  identical to  = TRWparms_point(kp(ns,1),lp(ns,1),sigp(ns,1),Ei);
+    
+    %%%%%%%%%%%% abort mission if error %%%%%%%%%%%
+    
     if (cgxPath(ns,1) == 999)
         nValid = 1:ns-1;
         break
@@ -267,8 +270,6 @@ for ns=2:npoints    % note loop starts calc for 2nd point from 1st point
 
     K0Path(ns,1)=  sqrt(kPath(ns,1).*kPath(ns,1) + lPath(ns,1).*lPath(ns,1));
 
-    %%%%%%%%%%% abort mission if error %%%%%%%%%%%
-
     Kbsqr =(kPath(ns,1).^2 + lPath(ns,1).^2 + kPath(ns,1)*beta/sig);    % K with beta     - uses input sig
     gH = sqrt(EiPath(ns,2).^2+EiPath(ns,3).^2);
     if Kbsqr <= 0
@@ -276,22 +277,35 @@ for ns=2:npoints    % note loop starts calc for 2nd point from 1st point
         nValid = 1:ns-1;
         break % abort simulation
     end
-    
-    if x > 6E4 && EiPath(ns,2) > -0.0031 && gH > 0.01294 
-        'in TRWpath_sig1_2ways arrived at MS Fan'
-        nValid = 1:ns-1;
-        break % abort simulation
-    end
 
-    if(EiPath(:,1) <= 1500)
-            'in TRWpath_sig1_2ways -1400m limit has been reached'
+    if dt_s > 0 % forward tracing only
+        if x > 6E4 && EiPath(ns,2) > -0.0031 && gH > 0.01294
+            'in TRWpath_sig1_2ways arrived at MS Fan'
             nValid = 1:ns-1;
             break % abort simulation
+        end
+        if(EiPath(:,1) <= 1500)
+            'in TRWpath_sig1_2ways -1500m limit has been reached'
+            nValid = 1:ns-1;
+            break % abort simulation
+        end
+        if x < 2E4
+            if gH > 0.036
+                'in TRWpath_sig1_2ways arrived at Sigsbee Escarpment'
+                nValid = 1:ns-1;
+                break % abort simulation
+            end
+        end
     end
 
-    if x < 2E4
-        if gH > 0.036
-            'in TRWpath_sig1_2ways Sigsbee Escarpement has been reached'
+    if dt_s < 0 % backward tracing only
+        if x > 2E5
+            'in TRWpath_sig1_2ways arrived at eastern edge of the domain'
+            nValid = 1:ns-1;
+            break % abort simulation
+        end
+        if y < -1.05E5
+            'in TRWpath_sig1_2ways arrived at southern edge of the domain'
             nValid = 1:ns-1;
             break % abort simulation
         end
@@ -331,6 +345,8 @@ for ns=2:npoints    % note loop starts calc for 2nd point from 1st point
     % KXgh(ns)  =  (hyPath(ns,1)*kPath(ns,1) - hxPath(ns,1)*lPath(ns,1));
     % sigCheck(ns) = NBPath(ns,1).*KXgh(ns)./KbPath(ns,1)./tanh(zeta(ns));
     % 2*pi/sigCheck(ns)/86400
+
+    % seems OK?
     nValid = 1:ns;
 
 end % for ns
@@ -402,6 +418,20 @@ end
 save([filePath varName '.mat'],"startT","startLAM","startLon","startLat","pathLon", ...
     "pathLat","dt_hr","pathK0","pathK","pathL", ...
     "pathEi","smoothing","totalSteps","days","timeHr","-mat");
+
+
+%%%%%% saved variables list %%%%%%
+% startT - initial period in days
+% startLAM - initial wavelength in km
+% startLon, startLat - initial location of tracing in deg
+% pathLon, pathLat - location at each step in tracing in deg
+% dt_hr, length of timestep in hr
+% pathK0,pathK, pathL - wavenumbers at each step in tracing in 1/m
+% pathEi - environmental parameters, h,hx,hy,hxx,hxy,hyy,N,f,beta
+% smoothing - bathymetry smoothing parameter in km
+% totalSteps - number of valid entries
+% timeHr -time record of ray tracing, a virtual clock in hr
+
 
 
 % figure(4); hold on;
