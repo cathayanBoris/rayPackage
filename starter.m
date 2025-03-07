@@ -1,8 +1,13 @@
 clear all
+
+if exist('needBathy','var') && needBathy == 1
+else
+    needBathy = 0;
+end
+
 lonInput = [];
 latInput = [];
 
-needBathy = 0;
 smoothingParameterInKM = 20;
 initialPeriodInDays = [];
 initialWavelengthInKM = [];

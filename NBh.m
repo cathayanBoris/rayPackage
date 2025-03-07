@@ -17,6 +17,7 @@ NN= N1*exp(h1/HH);
 
 % NB= NN*exp(-[1500:500:3000]/HH)     %test values look good
 NB =NN*exp(-h/HH); 
+end
 
 % NB = 1.4E-3;
 % NB = 2.65E-4;
