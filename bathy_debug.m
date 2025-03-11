@@ -11,6 +11,11 @@ xg = (xtopo - originLon) * meandx * 60;
 yg = (ytopo - originLat) * meandy * 60;
 
 %%
+xg = (xtopo - originLon) * meandx * 60;
+yg = (ytopo - originLat) * meandy * 60;
+xg = xtopo;
+yg = ytopo;
+
 % figure(1)
 % clf
 % contourf(xg,yg,ztopoS',[-4000:100:0],'ShowText','on')
@@ -19,10 +24,10 @@ figure(2)
 clf
 contourf(xg,yg,hg',[0:100:4000],'ShowText','on','LabelSpacing',500);
 hold on
-aa = contour(xg,yg,hg',[0:50:1650],'m','ShowText','off','LineWidth',3);
-bb = contour(xg(140:end),yg,hxg(140:end,:)',[0.005:0.001:1],'r','ShowText','off','LineWidth',3);
 cc = contour(xg(140:end),yg,hyg(140:end,:)',[-0.001:0.001:0.1],'b','ShowText','off','LineWidth',3);
+bb = contour(xg(140:end),yg,hxg(140:end,:)',[0.005:0.001:1],'r','ShowText','off','LineWidth',3);
 dd = contour(xg,yg,gradh',[0.04:0.001:0.1],'k','ShowText','off','LineWidth',3);
+aa = contour(xg,yg,hg',[0:50:1650],'m','ShowText','off','LineWidth',3);
 
 contour(xg,yg,hg',[0:100:4000],'ShowText','on','LabelSpacing',500);
 colormap(flipud(colormap(parula)))
