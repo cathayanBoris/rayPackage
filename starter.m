@@ -8,7 +8,7 @@ end
 lonInput = [];
 latInput = [];
 
-smoothingParameterInKM = 20;
+smoothingParameterInKM = 30;
 initialPeriodInDays = [];
 initialWavelengthInKM = [];
 numberOfDaysToRun = 15;
