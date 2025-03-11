@@ -279,27 +279,32 @@ for ns=2:npoints    % note loop starts calc for 2nd point from 1st point
     end
 
     if dt_s > 0 % forward tracing only
-        if x > 6E4 && EiPath(ns,2) > -0.0031 && gH > 0.01294
+        if x > 3E4 && EiPath(ns,2) > 0.005 && EiPath(ns,3) > -0.002
             'in TRWpath_sig1_2ways arrived at MS Fan'
             nValid = 1:ns-1;
             break % abort simulation
         end
-        if(EiPath(:,1) <= 1500)
-            'in TRWpath_sig1_2ways -1500m limit has been reached'
+        if(EiPath(:,1) <= 1650)
+            'in TRWpath_sig1_2ways -1650m limit has been reached'
             nValid = 1:ns-1;
             break % abort simulation
         end
-        if x < 2E4
-            if gH > 0.036
+        if x < 0
+            if gH > 0.04
                 'in TRWpath_sig1_2ways arrived at Sigsbee Escarpment'
                 nValid = 1:ns-1;
                 break % abort simulation
             end
         end
+        if y < -1.05E5
+            'in TRWpath_sig1_2ways arrived at southern edge of the domain'
+            nValid = 1:ns-1;
+            break % abort simulation
+        end
     end
 
     if dt_s < 0 % backward tracing only
-        if x > 2E5
+        if x > 1.95E5
             'in TRWpath_sig1_2ways arrived at eastern edge of the domain'
             nValid = 1:ns-1;
             break % abort simulation
