@@ -304,6 +304,11 @@ for ns=2:npoints    % note loop starts calc for 2nd point from 1st point
     end
 
     if dt_s < 0 % backward tracing only
+        if x > 3E4 && EiPath(ns,2) > 0.005 && EiPath(ns,3) > -0.001
+            'in TRWpath_sig1_2ways arrived at MS Fan'
+            nValid = 1:ns-1;
+            break % abort simulation
+        end
         if x > 1.95E5
             'in TRWpath_sig1_2ways arrived at eastern edge of the domain'
             nValid = 1:ns-1;
